@@ -1,0 +1,6 @@
+Numero,Observacion,Cliente,Estado
+1,Pedido 1,Cliente 1,Pendiente
+2,Pedido 2,Cliente 2,En progreso
+3,Pedido 3,Cliente 3,Entregado
+4,Pedido 4,Cliente 4,Pendiente
+5,Pedido 5,Cliente 5,En progreso
