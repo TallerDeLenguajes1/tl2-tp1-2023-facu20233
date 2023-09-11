@@ -3,14 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-namespace EspacioCadeteria;
-
+using EspacioCadeteria;
 
 class Program
 {
     static void Main()
     {
-        //-----cargar datos-------
+        // ----- cargar datos -------
 
         // Cargar datos cadetes CSV
         // CSV Id, Nombre, Direccion, Telefono
@@ -20,10 +19,9 @@ class Program
             {
                 var values = line.Split(',');
                 return new Cadete(
-                    int.Parse(values[0]),
-                    values[1],
-                    values[2],
-                    values[3]
+                    values[1],  // nombre
+                    values[2],  // direccion
+                    values[3]   // telefono
                 );
             })
             .ToList();
@@ -31,21 +29,30 @@ class Program
         // Cargar datos pedidos CSV
         // CSV: Numero, Observacion, Cliente, Estado
         List<Pedido> pedidos = File.ReadAllLines("pedidos.csv")
-            .Skip(1) 
+            .Skip(1)
             .Select(line =>
             {
                 var values = line.Split(',');
                 var cliente = new Cliente(values[2], "", "", ""); // Modificar si es necesario
                 return new Pedido(
-                    int.Parse(values[0]),
-                    values[1],
+                    int.Parse(values[0]),  // numero
+                    values[1],            // observacion
                     cliente,
-                    values[3]
+                    values[3]             // estado
                 );
             })
             .ToList();
 
-        // ---interfaz------
+        // instancia Cadeteria tp2
+        Cadeteria cadeteria = new Cadeteria("Nombre de la Cadetería", "Teléfono de la Cadetería");
+
+        // Asignar cadetes a la Cadeteria tp2
+        cadeteria.ListadoCadetes = cadetes;
+
+        // Asignar pedidos a la Cadeteria tp2
+        cadeteria.ListadoPedidos = pedidos;
+
+        // ------- interfaz --------
         while (true)
         {
             Console.WriteLine("Menu:");
@@ -61,153 +68,120 @@ class Program
             switch (opcion)
             {
                 case 1:
-                    // dar de alta un pedido
+                    // Dar de alta un pedido
                     Console.WriteLine("Ingrese número del pedido:");
                     int numeroPedido = int.Parse(Console.ReadLine());
-                    
+
                     Console.WriteLine("Ingrese observación:");
                     string observacion = Console.ReadLine();
-                    
+
                     Console.WriteLine("Ingrese nombre cliente:");
                     string nombreCliente = Console.ReadLine();
-
-                    // datos del cliente, como dirección y teléfono.
 
                     // Crear un nuevo cliente
                     var cliente = new Cliente(nombreCliente, "Dirección", "Teléfono", "Datos de referencia de dirección");
 
-                    // var cliente = new Cliente
-                    // {
-                    //     Nombre = nombreCliente,
-                    //     // Asigna los otros datos del cliente aquí.
-                    // };
-
                     // Crear un nuevo pedido
-                    var nuevoPedido = new Pedido(numeroPedido, "vacio", cliente, "pendiente");
+                    var nuevoPedido = new Pedido(numeroPedido, observacion, cliente, "pendiente");
 
-                    // var nuevoPedido = new Pedido
-                    // {
-                    //     Numero = numeroPedido,
-                    //     Observacion = observacion,
-                    //     Cliente = cliente,
-                    //     Estado = "Pendiente" // establecer el estado inicial aquí.
-                    // };
-
-                    // Agregar pedido, lista de pedidos
-                    pedidos.Add(nuevoPedido);
+                    // Agregar pedido a la lista de pedidos de la Cadeteria
+                    cadeteria.AgregarPedido(nuevoPedido);
+                    Console.WriteLine("Pedido creado y agregado correctamente.");
                     break;
 
                 case 2:
-                    // Lógica para asignar un pedido a un cadete
+                    // Asignar un pedido a un cadete
                     Console.WriteLine("Ingrese el número del pedido que desea asignar:");
                     int numeroPedidoAsignar = int.Parse(Console.ReadLine());
 
-                    Console.WriteLine("Ingrese el ID cadete al que desea asignar el pedido:");
+                    Console.WriteLine("Ingrese el ID del cadete al que desea asignar el pedido:");
                     int idCadeteAsignar = int.Parse(Console.ReadLine());
 
                     // Buscar el pedido y el cadete por número y ID, respectivamente
-                    var pedidoAsignar = pedidos.FirstOrDefault(p => p.Numero == numeroPedidoAsignar);
-                    var cadeteAsignar = cadetes.FirstOrDefault(c => c.Id == idCadeteAsignar);
+                    var pedidoAsignar = cadeteria.ListadoPedidos.FirstOrDefault(p => p.Numero == numeroPedidoAsignar);
+                    var cadeteAsignar = cadeteria.ListadoCadetes.FirstOrDefault(c => c.Id == idCadeteAsignar);
 
                     if (pedidoAsignar != null && cadeteAsignar != null)
                     {
-                        // Asignar el pedido al cadete
-                        cadeteAsignar.AgregarPedido(pedidoAsignar);
+                        // Asignar el cadete al pedido
+                        cadeteria.AsignarCadeteAPedido(idCadeteAsignar, numeroPedidoAsignar);
                         Console.WriteLine("Pedido asignado correctamente al cadete.");
                     }
                     else
                     {
-                        Console.WriteLine("Pedido o cadete no encontrados. Verificar numeros y ID");
+                        Console.WriteLine("Pedido o cadete no encontrados. Verificar números y ID.");
                     }
                     break;
 
                 case 3:
-                    // cambiar estado pedido
+                    // Cambiar estado de un pedido
                     Console.WriteLine("Ingrese el número del pedido que desea cambiar de estado:");
                     int numeroPedidoCambiarEstado = int.Parse(Console.ReadLine());
 
                     // Buscar el pedido por número
-                    var pedidoCambiarEstado = pedidos.FirstOrDefault(p => p.Numero == numeroPedidoCambiarEstado);
+                    var pedidoCambiarEstado = cadeteria.ListadoPedidos.FirstOrDefault(p => p.Numero == numeroPedidoCambiarEstado);
 
                     if (pedidoCambiarEstado != null)
                     {
-                        Console.WriteLine("Ingrese nuevo estado pedido:");
+                        Console.WriteLine("Ingrese nuevo estado del pedido:");
                         string nuevoEstado = Console.ReadLine();
                         pedidoCambiarEstado.Estado = nuevoEstado;
-                        Console.WriteLine("Estado pedido actualizado");
+                        Console.WriteLine("Estado del pedido actualizado.");
                     }
                     else
                     {
-                        Console.WriteLine("Pedido no encontrado. Verifique numero pedido.");
+                        Console.WriteLine("Pedido no encontrado. Verifique número de pedido.");
                     }
                     break;
 
                 case 4:
-                    // reasignar a otro cadete
-                    Console.WriteLine("Ingrese numero del pedido que desea reasignar:");
+                    // Reasignar un pedido a otro cadete
+                    Console.WriteLine("Ingrese el número del pedido que desea reasignar:");
                     int numeroPedidoReasignar = int.Parse(Console.ReadLine());
 
-                    Console.WriteLine("Ingrese ID del nuevo cadete para reasignar el pedido:");
+                    Console.WriteLine("Ingrese el ID del nuevo cadete para reasignar el pedido:");
                     int idNuevoCadete = int.Parse(Console.ReadLine());
 
-                    // Buscar pedido y nuevo cadete por numero y ID
-                    var pedidoReasignar = pedidos.FirstOrDefault(p => p.Numero == numeroPedidoReasignar);
-                    var nuevoCadete = cadetes.FirstOrDefault(c => c.Id == idNuevoCadete);
+                    // Buscar pedido y nuevo cadete por número y ID
+                    var pedidoReasignar = cadeteria.ListadoPedidos.FirstOrDefault(p => p.Numero == numeroPedidoReasignar);
+                    var nuevoCadete = cadeteria.ListadoCadetes.FirstOrDefault(c => c.Id == idNuevoCadete);
 
                     if (pedidoReasignar != null && nuevoCadete != null)
                     {
-                        // Eliminar pedido del cadete anterior
-                        foreach (var cadete in cadetes)
-                        {
-                            if (cadete.ListadoPedidos.Contains(pedidoReasignar))
-                            {
-                                cadete.ListadoPedidos.Remove(pedidoReasignar);
-                                break; // Salir del bucle una vez encontrado el cadete 
-                            }
-                        }
-
-                        // Asignar el pedido al nuevo cadete
-                        nuevoCadete.AgregarPedido(pedidoReasignar);
-                        Console.WriteLine("Pedido reasignado");
+                        // Reasignar el pedido al nuevo cadete
+                        cadeteria.ReasignarPedidoAPedido(idNuevoCadete, numeroPedidoReasignar);
+                        Console.WriteLine("Pedido reasignado.");
                     }
                     else
                     {
-                        Console.WriteLine("Pedido o cadete no encontrados. Verifique numeros y ID");
+                        Console.WriteLine("Pedido o cadete no encontrados. Verificar números y ID.");
                     }
                     break;
 
                 case 5:
-                    // mostrar el informe de pedidos
+                    // Mostrar informe de pedidos
                     Console.WriteLine("----------Informe de pedidos:---------");
 
-                    int totalEnvios = 0; //total de envíos
-
-                    foreach (var cadete in cadetes)
+                    foreach (var cadete in cadeteria.ListadoCadetes)
                     {
-                        decimal montoGanado = cadete.JornalACobrar();
-                        int cantidadEnvios = cadete.ListadoPedidos.Count;
-                        decimal enviosPromedio = cantidadEnvios > 0 ? montoGanado / cantidadEnvios : 0;
-
                         Console.WriteLine($"Cadete: {cadete.Nombre}");
-                        Console.WriteLine($"Monto Ganado: {montoGanado:C}");
-                        Console.WriteLine($"Cantidad de Envíos: {cantidadEnvios}");
-                        Console.WriteLine($"Envíos Promedio: {enviosPromedio:C}");
+                        Console.WriteLine($"Monto Ganado: {cadeteria.JornalACobrar(cadete.Id):C}");
+                        Console.WriteLine($"Cantidad de Envíos: {cadeteria.CantidadEnviosCadete(cadete.Id)}");
+                        Console.WriteLine($"Envíos Promedio: {cadeteria.PromedioEnviosCadete(cadete.Id):C}");
                         Console.WriteLine();
-
-                        totalEnvios += cantidadEnvios; // Sumar envíos del cadete al total
                     }
 
                     // cantidad total envios
-                    Console.WriteLine($"Total Envíos Realizados: {totalEnvios}");
+                    Console.WriteLine($"Total Envíos Realizados: {cadeteria.CantidadTotalEnvios}");
 
                     // promedio envios
-                    decimal promedioEnvios = cadetes.Count > 0 ? (decimal)totalEnvios / cadetes.Count : 0;
+                    decimal promedioEnvios = cadeteria.ListadoCadetes.Count > 0 ?
+                        (decimal)cadeteria.CantidadTotalEnvios / cadeteria.ListadoCadetes.Count : 0;
                     Console.WriteLine($"Promedio Envíos por Cadete: {promedioEnvios:F2}");
                     break;
 
-
                 case 6:
-                    // Salir programa
+                    // Salir del programa
                     Environment.Exit(0);
                     break;
 
@@ -215,9 +189,6 @@ class Program
                     Console.WriteLine("Opción no válida");
                     break;
             }
-
         }
-        
-
     }
 }
