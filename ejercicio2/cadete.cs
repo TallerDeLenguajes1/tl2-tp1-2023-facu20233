@@ -12,8 +12,8 @@ class Cadete
     private string nombre;
     private string direccion;
     private string telefono;
-    // private List<Pedido> listadoPedidos = new List<Pedido>();
-    // public List<Pedido> ListadoPedidos { get => listadoPedidos; set => listadoPedidos = value; }
+    private List<Pedido> listadoPedidos = new List<Pedido>();
+    public List<Pedido> ListadoPedidos { get => listadoPedidos; set => listadoPedidos = value; }
 
     public int Id { get => id; set => id = value; }
     public string Nombre { get => nombre; set => nombre = value; }
